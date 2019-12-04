@@ -8,7 +8,7 @@
 <jsp:useBean id="applicant" class="edu.jsu.mcis.cs425.project2.BeanApplicant" scope="session" />
 <jsp:setProperty name="applicant" property="*" />
    <%
-      if (applicant.getJobs() != null) {
+      if (applicant.getJobsList() != null) {
          applicant.setJobsList();
       }
    %>
