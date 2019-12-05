@@ -19,15 +19,14 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author JSU
+ * @author Zeth Malcom
  */
 public class Database {
     
      public HashMap getUserInfo(String username){
          
          HashMap<String, String> results = null;
-         
-         // ...
+  
          try{
              
              Connection conn = getConnection();
@@ -44,9 +43,7 @@ public class Database {
                  
                  if(resultset.next()) {
                      
-                     //create hashmap; add user data from result set
-                     //use key name "id" for th eif and "displayname"
-                     //display name
+                    
                      String id = resultset.getString("id");
                      String displayname = resultset.getString("displayname");
                      
@@ -61,7 +58,7 @@ public class Database {
          
      }
     
-     Connection getConnection() {
+     private Connection getConnection() {
         
         Connection conn = null;
         
@@ -79,39 +76,38 @@ public class Database {
 
     }
      String getSkillsListAsHTML(int userid) {
-        String query = "select skills.*,a.userid \n" +
-        "from cs425_p2.skills as skills\n" +
-        "left join (SELECT * FROM cs425_p2.applicants_to_skills where userid = ?) as a\n" +
+        String query = "SELECT skills.*,a.userid \n" +
+        "FROM cs425_p2.skills as skills\n" +
+        "LEFT JOIN (SELECT * FROM cs425_p2.applicants_to_skills WHERE userid = ?) as a\n" +
         "on skills.id = a.skillsid;";
         StringBuilder results = new StringBuilder();
         String skills;
         
         try {
             Connection conn = getConnection();
-            PreparedStatement statement = conn.prepareStatement(query);
-            statement.setString(1, Integer.toString(userid));
-            boolean hasResults = statement.execute();
-            ResultSet resultset = statement.getResultSet();
-            
-            while (resultset.next()) {
-                String description = resultset.getString("description");
-                int id = resultset.getInt("id");
-                int user = resultset.getInt("userid");
-                results.append("<input type=\"checkbox\" name=\"skills\" value=\"");
-                results.append(id);
-                results.append("\" id=\"skills_").append(id).append("\" ");
-                
-                if (user != 0) {
-                    results.append("checked");
+            try (PreparedStatement statement = conn.prepareStatement(query)) {
+                statement.setString(1, Integer.toString(userid));
+                boolean hasResults = statement.execute();
+                try (ResultSet resultset = statement.getResultSet()) {
+                    while (resultset.next()) {
+                        String description = resultset.getString("description");
+                        int id = resultset.getInt("id");
+                        int user = resultset.getInt("userid");
+                        results.append("<input type=\"checkbox\" name=\"skills\" value=\"");
+                        results.append(id);
+                        results.append("\" id=\"skills_").append(id).append("\" ");
+                        
+                        if (user != 0) {
+                            results.append("checked");
+                        }
+                        
+                        results.append(">");
+                        results.append("<label for=\"skills_").append(id).append("\">").append(description).append("</label><br /><br />");
+                    }
                 }
-                
-                results.append(">");
-                results.append("<label for=\"skills_").append(id).append("\">").append(description).append("</label><br /><br />");
             }
-            resultset.close();
-            statement.close();
         }
-        catch (Exception SQLException) {}
+        catch (SQLException SQLException) {}
         skills = results.toString();
         
         return skills;
@@ -128,14 +124,14 @@ public class Database {
             statement.setString(1, Integer.toString(userid));
             int rowsChanged = statement.executeUpdate();
                 statement = conn.prepareStatement(query2);
-                for (int i = 0; i < skills.length; i++) {
-                    statement = conn.prepareStatement(query2);
-                    statement.setString(1, Integer.toString(userid));
-                    statement.setString(2, skills[i]);
-                    statement.execute();             
-                }
+            for (String skill : skills) {
+                statement = conn.prepareStatement(query2);
+                statement.setString(1, Integer.toString(userid));
+                statement.setString(2, skill);
+                statement.execute();
+            }
         }
-        catch (Exception SQLException) {}
+        catch (SQLException SQLException) {}
     }
 
     String getJobsListAsHTML(int userid, String[] skills) {
@@ -174,7 +170,7 @@ public class Database {
                     results.append("<label for=\"job_").append(jobid).append("\">").append(jobname).append("</label><br /><br />");
                 }
         }
-        catch(Exception SQLException){}
+        catch(SQLException SQLException){}
         return results.toString();
     }
 
@@ -189,20 +185,18 @@ public class Database {
             statement.setString(1, Integer.toString(userid));
             int rowsChanged = statement.executeUpdate();
                 statement = conn.prepareStatement(query2);
-                for (int i = 0; i < jobs.length; i++) {
-                    statement = conn.prepareStatement(query2);
-                    statement.setString(1, Integer.toString(userid));
-                    statement.setString(2, jobs[i]);
-                    statement.execute();             
-                }
+            for (String job : jobs) {
+                statement = conn.prepareStatement(query2);
+                statement.setString(1, Integer.toString(userid));
+                statement.setString(2, job);
+                statement.execute();
+            }
         }
-        catch (Exception SQLException) {}
+        catch (SQLException SQLException) {}
     }
-
     String getJobsAsHTML(int id) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }
-    
 
